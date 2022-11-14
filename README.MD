@@ -9,3 +9,10 @@ Interpolating an audio file creates a mirror of the spectrogram above the origin
 ## Usage
 Call the function with the path to the audio file as its parameter. The function writes the audio file to "spectroflip_output.wav" and returns the flipped audio file as an array.
 ```spectroflip("path_to_file.wav");```
+
+## Screenshots
+Spectrograms of the original and "flipped" audio files, respectively.
+
+<img src="https://i.postimg.cc/xjRmNq87/original.png" alt="Spectrogram of the original audio" width="40%"/> 
+<img src="https://i.postimg.cc/Pr5wWh8q/flipped.png" alt="Spectrogram of the flipped audio" width="40%"/>
+
