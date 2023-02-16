@@ -1,4 +1,4 @@
-function flipped = spectroflip(audioPath)
+function [flippedWave, sampleRate] = spectroflip(audioPath)
 
     [wave, sampleRate] = audioread(audioPath);
 
@@ -25,17 +25,17 @@ function flipped = spectroflip(audioPath)
         antiAliasFilter = fir1(2000, (0.25)*2, "low", blackman(2001));
         shifted = conv(shifted, antiAliasFilter);
         channelData = shifted(1:2:end);
+        channelData = channelData(1:length(wave));
 
         % Replace the original channel with an inverted channel
-        wave(:,channel) = channelData;
+        wave(:,channel) = channelData';
 
     end
-
 
     % Normalize to -0.1 dB
     peak = 10^(99/100)/10; % (dB)
     wave = wave * peak / max(abs( wave(:)));
 
-    flipped = wave;
+    flippedWave = wave;
 
 end
