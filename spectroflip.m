@@ -3,34 +3,39 @@ function flipped = spectroflip(audioPath)
     [wave, sampleRate] = audioread(audioPath);
 
     interpFactor = 2;
+    channelCount = width(wave);
 
-    if width(wave) > 1
-        wave = mean(wave, width(wave)); % Mix down to mono
+    for channel = 1:channelCount
+
+        channelData = wave(:,channel);
+
+        % Interpolate by 2 to create a "mirror image" of the sound file's spectrogram
+        z = zeros([interpFactor*length(channelData) 1]);
+        z(1:interpFactor:end) = channelData;
+    
+        highPass = fir1(2000, (0.25)*2, "high", blackman(2001)); % For removing original frequencies
+    
+        mirrorWaveIsolated = conv(z, highPass);
+    
+        % Shift the spectrum down
+        n = (1:length(mirrorWaveIsolated));
+        shifted = mirrorWaveIsolated' .* cos(2*pi* n * (sampleRate/2) / (interpFactor*sampleRate));
+    
+        % Resample back to original sample rate
+        antiAliasFilter = fir1(2000, (0.25)*2, "low", blackman(2001));
+        shifted = conv(shifted, antiAliasFilter);
+        channelData = shifted(1:2:end);
+
+        % Replace the original channel with an inverted channel
+        wave(:,channel) = channelData;
+
     end
 
-    % Interpolate by 2 to create a "mirror image" of the sound file's spectrogram
-    z = zeros([interpFactor*length(wave) 1]);
-    z(1:interpFactor:end) = wave;
 
-    highPass = fir1(2000, (0.25)*2, "high", blackman(2001)); % For removing original frequencies
-
-    mirrorWave = conv(z, highPass);
-
-    % Shift the spectrum to 0 - sampleRate Hz
-    n = (1:length(mirrorWave));
-    shifted = mirrorWave' .* cos(2*pi* n * (sampleRate/2) / (interpFactor*sampleRate));
-
-    % Resample vack to original sample rate
-    antiAliasFilter = fir1(2000, (0.25)*2, "low", blackman(2001));
-    shifted = conv(shifted, antiAliasFilter);
-    finalWave = shifted(1:2:end);
-
-    % Normalize to -0.1 dB & save
+    % Normalize to -0.1 dB
     peak = 10^(99/100)/10; % (dB)
-    finalWave = finalWave * peak / max(finalWave);
-    newFileName = "spectroflip_output.wav";
-    audiowrite(newFileName, finalWave, sampleRate);
+    wave = wave * peak / max(abs( wave(:)));
 
-    flipped = finalWave;
+    flipped = wave;
 
 end
